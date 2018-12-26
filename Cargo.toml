@@ -1,8 +1,24 @@
 [package]
 name = "pancurses-result"
+description = """
+pancurses-result is a wrapper for pancurses that aims to provide a
+safe interface to curses.  This library aims to guarantee thread and
+memory safety, whereas pancurses just provides direct C bindings.
+"""
+homepage = "https://github.com/czipperz/pancurses-result"
+repository = "https://github.com/czipperz/pancurses-result"
+documentation = "https://docs.rs/pancurses-result"
+license = "MIT"
+license-file = "LICENSE"
+keywords = ["pancurses", "curses", "ncurses", "pdcurses", "pancurses-result"]
 version = "0.1.0"
-authors = ["Czipperz <czipperz@gmail.com>"]
+authors = ["Chris Gregory <czipperz@gmail.com>"]
 
 [dependencies]
 pancurses = "*"
 lazy_static = "*"
+
+[features]
+wide = ["pancurses/wide"]
+win32 = ["pancurses/win32"]
+win32a = ["pancurses/win32a"]
