@@ -300,7 +300,7 @@ impl Window {
     }
 
     pub fn set_background<T: Into<Chtype>>(&mut self, ch: T) {
-        self.w.bgkdset(ch)
+        self.w.bkgdset(ch)
     }
     pub fn set_background_and_apply<T: Into<Chtype>>(&mut self, ch: T) -> Result<(), ()> {
         check(self.w.bkgd(ch))
@@ -503,18 +503,12 @@ impl Window {
     }
 
     pub fn window_to_screen<P: Into<Point>>(&self, p: P) -> Point {
-        // there is a bug in the source code of ncurses-rs crate that has forced pancurses to use mut
-        let win =
-            unsafe { &mut *((&self.w as *const pancurses::Window) as *mut pancurses::Window) };
         let p = p.into();
-        win.mouse_trafo(p.y, p.x, true).into()
+        self.w.mouse_trafo(p.y, p.x, true).into()
     }
     pub fn screen_to_window<P: Into<Point>>(&self, p: P) -> Point {
-        // there is a bug in the source code of ncurses-rs crate that has forced pancurses to use mut
-        let win =
-            unsafe { &mut *((&self.w as *const pancurses::Window) as *mut pancurses::Window) };
         let p = p.into();
-        win.mouse_trafo(p.y, p.x, false).into()
+        self.w.mouse_trafo(p.y, p.x, false).into()
     }
 
     pub fn move_to<P: Into<Point>>(&mut self, p: P) -> Result<(), ()> {
