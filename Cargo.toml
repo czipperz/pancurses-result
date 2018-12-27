@@ -9,9 +9,8 @@ homepage = "https://github.com/czipperz/pancurses-result"
 repository = "https://github.com/czipperz/pancurses-result"
 documentation = "https://docs.rs/pancurses-result"
 license = "MIT"
-license-file = "LICENSE"
 keywords = ["pancurses", "curses", "ncurses", "pdcurses", "pancurses-result"]
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Chris Gregory <czipperz@gmail.com>"]
 
 [dependencies]
@@ -22,3 +21,5 @@ lazy_static = "1.2.0"
 wide = ["pancurses/wide"]
 win32 = ["pancurses/win32"]
 win32a = ["pancurses/win32a"]
+show_menu = ["pancurses/show_menu"]
+disable_resize = ["pancurses/disable_resize"]
