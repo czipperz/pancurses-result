@@ -111,7 +111,12 @@ impl Curses {
     pub fn set_color(&mut self, color: i16, r: i16, g: i16, b: i16) -> Result<(), ()> {
         check(pancurses::init_color(color, r, g, b))
     }
-    pub fn set_color_pair(&mut self, pair: i16, foreground: i16, background: i16) -> Result<(), ()> {
+    pub fn set_color_pair(
+        &mut self,
+        pair: i16,
+        foreground: i16,
+        background: i16,
+    ) -> Result<(), ()> {
         check(pancurses::init_pair(pair, foreground, background))
     }
 
@@ -161,13 +166,6 @@ impl Curses {
 
     pub fn flash(&mut self) -> Result<(), ()> {
         check(pancurses::flash())
-    }
-
-    pub fn flush_input(&mut self) -> Result<(), ()> {
-        check(pancurses::flushinp())
-    }
-    pub fn set_input_timeout_tenths(&mut self, tenths: i32) -> Result<(), ()> {
-        check(pancurses::half_delay(tenths))
     }
 
     pub fn key_name(&self, key_code: i32) -> Option<String> {
@@ -268,13 +266,13 @@ pub struct Window {
 }
 
 impl Window {
-    pub fn addch<T: Into<Chtype>>(&mut self, ch: T) -> Result<(), ()> {
+    pub fn add_char<T: Into<Chtype>>(&mut self, ch: T) -> Result<(), ()> {
         check(self.w.addch(ch.into()))
     }
-    pub fn addstr<T: AsRef<str>>(&mut self, string: T) -> Result<(), ()> {
+    pub fn add_str<T: AsRef<str>>(&mut self, string: T) -> Result<(), ()> {
         check(self.w.addstr(string))
     }
-    pub fn addnstr<T: AsRef<str>>(&mut self, string: T, length: usize) -> Result<(), ()> {
+    pub fn add_str_n<T: AsRef<str>>(&mut self, string: T, length: usize) -> Result<(), ()> {
         check(self.w.addnstr(string, length))
     }
 
@@ -375,7 +373,6 @@ impl Window {
     pub fn delete_line(&mut self) -> Result<(), ()> {
         check(self.w.deleteln())
     }
-
     pub fn delete_window(self) -> Result<(), ()> {
         check(self.w.delwin())
     }
@@ -433,7 +430,7 @@ impl Window {
         check(self.w.vline(ch.into(), max_length))
     }
 
-    pub fn enclose(&self, y: i32, x: i32) -> bool {
+    pub fn encloses(&self, y: i32, x: i32) -> bool {
         self.w.enclose(y, x)
     }
 
@@ -442,8 +439,7 @@ impl Window {
     }
 
     pub fn start(&self) -> Point {
-        let (y, x) = self.w.get_beg_yx();
-        Point { y, x }
+        self.w.get_beg_yx().into()
     }
     pub fn start_y(&self) -> i32 {
         self.w.get_beg_y()
@@ -453,8 +449,7 @@ impl Window {
     }
 
     pub fn current(&self) -> Point {
-        let (y, x) = self.w.get_cur_yx();
-        Point { y, x }
+        self.w.get_cur_yx().into()
     }
     pub fn current_y(&self) -> i32 {
         self.w.get_cur_y()
@@ -464,18 +459,13 @@ impl Window {
     }
 
     pub fn end(&self) -> Point {
-        let (y, x) = self.w.get_max_yx();
-        Point { y, x }
+        self.w.get_max_yx().into()
     }
     pub fn end_y(&self) -> i32 {
         self.w.get_max_y()
     }
     pub fn end_x(&self) -> i32 {
         self.w.get_max_x()
-    }
-
-    pub fn read(&mut self) -> Option<Input> {
-        self.w.getch()
     }
 
     pub fn insert_lines(&mut self, n: i32) -> Result<(), ()> {
@@ -486,13 +476,6 @@ impl Window {
     }
     pub fn insert_char<T: Into<Chtype>>(&self, ch: T) -> Result<(), ()> {
         check(self.w.insch(ch.into()))
-    }
-
-    pub fn line_touched(&self, line: i32) -> bool {
-        self.w.is_linetouched(line)
-    }
-    pub fn touched(&self) -> bool {
-        self.w.is_touched()
     }
 
     pub fn enable_keypad(&mut self) -> Result<(), ()> {
@@ -571,15 +554,26 @@ impl Window {
         check(self.w.mvwin(p.y, p.x))
     }
 
+    pub fn read(&mut self) -> Option<Input> {
+        self.w.getch()
+    }
+    pub fn flush_input(&mut self) -> Result<(), ()> {
+        check(pancurses::flushinp())
+    }
+    pub fn unread(&mut self, input: &Input) -> Result<(), ()> {
+        check(self.w.ungetch(input))
+    }
     pub fn enable_read_delay(&mut self) -> Result<(), ()> {
         check(self.w.nodelay(false))
     }
     pub fn disable_read_delay(&mut self) -> Result<(), ()> {
         check(self.w.nodelay(true))
     }
-
-    pub fn refresh_virtual_screen(&self) -> Result<(), ()> {
-        check(self.w.noutrefresh())
+    pub fn set_timeout_milliseconds(&self, milliseconds: i32) {
+        self.w.timeout(milliseconds)
+    }
+    pub fn set_input_timeout_tenths(&mut self, tenths: i32) -> Result<(), ()> {
+        check(pancurses::half_delay(tenths))
     }
 
     pub fn overlay(&self, destination: &Window) -> Result<(), ()> {
@@ -592,6 +586,9 @@ impl Window {
     pub fn refresh(&self) -> Result<(), ()> {
         check(self.w.refresh())
     }
+    pub fn refresh_virtual_screen(&self) -> Result<(), ()> {
+        check(self.w.noutrefresh())
+    }
 
     pub fn enable_scroll(&mut self) -> Result<(), ()> {
         check(self.w.scrollok(true))
@@ -603,7 +600,12 @@ impl Window {
         check(self.w.setscrreg(start, end))
     }
 
-    pub fn subwin<P: Into<Point>>(&self, lines: i32, columns: i32, p: P) -> Result<Window, ()> {
+    pub fn create_sub_window<P: Into<Point>>(
+        &self,
+        lines: i32,
+        columns: i32,
+        p: P,
+    ) -> Result<Window, ()> {
         let p = p.into();
         match self.w.subwin(lines, columns, p.y, p.x) {
             Ok(w) => Ok(Window { w }),
@@ -611,10 +613,12 @@ impl Window {
         }
     }
 
-    pub fn set_timeout_milliseconds(&self, milliseconds: i32) {
-        self.w.timeout(milliseconds)
+    pub fn line_touched(&self, line: i32) -> bool {
+        self.w.is_linetouched(line)
     }
-
+    pub fn touched(&self) -> bool {
+        self.w.is_touched()
+    }
     pub fn touch(&mut self) -> Result<(), ()> {
         check(self.w.touch())
     }
@@ -626,10 +630,6 @@ impl Window {
     }
     pub fn untouch_lines(&mut self, start: i32, count: i32) -> Result<(), ()> {
         check(self.w.touchln(start, count, false))
-    }
-
-    pub fn unread(&mut self, input: &Input) -> Result<(), ()> {
-        check(self.w.ungetch(input))
     }
 }
 
