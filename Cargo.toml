@@ -10,7 +10,7 @@ repository = "https://github.com/czipperz/pancurses-result"
 documentation = "https://docs.rs/pancurses-result"
 license = "MIT"
 keywords = ["pancurses", "curses", "ncurses", "pdcurses", "pancurses-result"]
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Chris Gregory <czipperz@gmail.com>"]
 
 [dependencies]
