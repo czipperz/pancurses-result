@@ -22,28 +22,39 @@ impl From<ColorContent> for (i16, i16, i16) {
     }
 }
 
+/// Color subsystem.  It can be accessed via [`Curses::color`].
+///
+/// [`Curses::color`]: struct.Curses.html#method.color
 pub struct Color {
     marker: PhantomData<()>,
 }
 
 impl Color {
     pub(crate) fn new() -> Self {
-        Color { marker: PhantomData }
+        Color {
+            marker: PhantomData,
+        }
     }
 
-    /// The maximum number of colors supported
+    /// The maximum number of colors supported.
+    ///
+    /// This corresponds to `COLORS`.
     pub fn max_colors(&self) -> i32 {
         pancurses::COLORS()
     }
-    /// Get the `n`th color pair
+    /// Get the `n`th color pair.
+    ///
+    /// This corresponds to `COLOR_PAIR`.
     pub fn color_pair<T: Into<Chtype>>(&self, n: T) -> Chtype {
         pancurses::COLOR_PAIR(n.into())
     }
-    /// Get the number of color pairs
+    /// Get the number of color pairs.
+    ///
+    /// This corresponds to `COLOR_PAIRS`.
     pub fn color_pairs(&self) -> i32 {
         pancurses::COLOR_PAIRS()
     }
-    /// Get the [`ColorContent`] of a certain color
+    /// Get the [`ColorContent`] of a certain color.
     ///
     /// [`ColorContent`]: struct.ColorContent.html
     pub fn color_content(&self, color: i16) -> ColorContent {
@@ -53,11 +64,13 @@ impl Color {
     pub fn can_change_color(&self) -> bool {
         pancurses::can_change_color()
     }
-    /// Tell the curses instance to use default colors
+    /// Tell the curses instance to use default colors.
     pub fn use_default_colors(&mut self) -> Result<(), ()> {
         check(pancurses::use_default_colors())
     }
-    /// Set the nth color to a certain [`ColorContent`]
+    /// Set the nth color to a certain [`ColorContent`].
+    ///
+    /// This corresponds to `init_color`.
     ///
     /// [`ColorContent`]: struct.ColorContent.html
     pub fn set_color(&mut self, color: i16, color_content: ColorContent) -> Result<(), ()> {
@@ -69,6 +82,8 @@ impl Color {
         ))
     }
     /// Set the `color_pair` to a combination of the `foregrond` and `background` colors.
+    ///
+    /// This corresponds to `init_pair`.
     pub fn set_color_pair(
         &mut self,
         color_pair: i16,

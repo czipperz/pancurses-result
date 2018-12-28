@@ -31,3 +31,8 @@ pub(crate) fn check(r: i32) -> Result<(), ()> {
         Ok(())
     }
 }
+
+use std::time::Duration;
+pub(crate) fn as_millis(duration: Duration) -> i32 {
+    duration.as_secs() as i32 * 1000 + duration.subsec_millis() as i32
+}

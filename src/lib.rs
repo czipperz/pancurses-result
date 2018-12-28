@@ -3,12 +3,17 @@
 //! guarantee thread and memory safety, whereas `pancurses` just
 //! provides direct C bindings.
 //!
-//! Click here to about [`Window`]s.
+//! Many curses functions have been renamed for one reason or another.  All
+//! renamed functions state the curses function they corollate to.
 //!
-//! To initialize `pancurses-result`, run [`initscr`].
+//! The outermost class is [`Curses`].  It is initialized via
+//! [`initscr`].  Use its methods to manipulate the curses instance.
 //!
-//! [`Window`]: struct.Window.html
+//! [`Curses`] manages the [`Window`] representing `stdscr`.
+//!
+//! [`Curses`]: struct.Curses.html
 //! [`initscr`]: fn.initscr.html
+//! [`Window`]: struct.Window.html
 
 extern crate pancurses;
 #[macro_use]
