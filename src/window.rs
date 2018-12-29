@@ -139,10 +139,12 @@ impl Window {
     /// This fills the screen with background characters.  This can be
     /// customized via [`set_background`].
     ///
-    /// Unlike [`erase`], `clear` will also invoke [`refresh_force_clear`].
+    /// Unlike [`erase`], `clear` will also invoke force a the next call to
+    /// [`refresh`] to clear the screen (as if by [`refresh_force_clear`]).
     ///
     /// [`set_background`]: struct.Window.html#method.set_background
     /// [`erase`]: struct.Window.html#method.erase
+    /// [`refresh`]: struct.Window.html#method.refresh
     /// [`refresh_force_clear`]: struct.Window.html#method.refresh_force_clear
     pub fn clear(&mut self) -> Result<(), ()> {
         check(self.w.clear())
@@ -515,7 +517,7 @@ impl Window {
     ///
     /// This corresponds to `getch`.
     ///
-    /// [`set_block_on_read`]: struct.Window.html#method.block_on_read
+    /// [`set_block_on_read`]: struct.Window.html#method.set_block_on_read
     /// [`set_timeout`]: struct.Window.html#method.set_timeout
     /// [`Curses::set_timeout`]: struct.Curses.html#method.set_timeout
     /// [`read_interpolate_function_keys`]: struct.Window.html#method.read_interpolate_function_keys
