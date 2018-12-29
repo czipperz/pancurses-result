@@ -58,24 +58,126 @@ impl Window {
     pub fn printw(&mut self, args: std::fmt::Arguments) -> Result<(), ()> {
         self.put_str(args.to_string())
     }
-    /// Put the contents of `window` that overlap with this `Window`.
+    /// Put the contents of `source` that overlap with this `Window`.
     ///
     /// The two `Window`s are not required to be the same size;
     /// overlapping portions are copied.
     ///
     /// This corresponds to `overwrite` but *with the arguments flipped*.
-    pub fn put_window(&mut self, window: &Window) -> Result<(), ()> {
-        check(window.w.overwrite(&self.w))
+    pub fn put_window(&mut self, source: &Window) -> Result<(), ()> {
+        source.overwrite_onto(self)
     }
-    /// Put the non-blank contents of `window` that overlap with this
+    /// Put the contents of `source` in a region at a region of this `Window`.
+    ///
+    /// The two regions are not required to be the same size; overlapping
+    /// portions are copied.
+    ///
+    /// This corresponds to `copywin` but *with the arguments flipped* and a
+    /// final argument of `true`.
+    pub fn put_window_region<P1: Into<Point>, P2: Into<Point>, P3: Into<Point>>(
+        &mut self,
+        destination_start: P1,
+        destination_end: P2,
+        source: &Window,
+        source_start: P3,
+    ) -> Result<(), ()> {
+        source.overwrite_region_onto(source_start, self, destination_start, destination_end)
+    }
+    /// Put the non-blank contents of `source` that overlap with this
     /// `Window`.
     ///
     /// The two `Window`s are not required to be the same size;
     /// overlapping portions are copied.
     ///
     /// This corresponds to `overlay` but *with the arguments flipped*.
-    pub fn put_window_text(&mut self, window: &Window) -> Result<(), ()> {
-        check(window.w.overlay(&self.w))
+    pub fn put_window_text(&mut self, source: &Window) -> Result<(), ()> {
+        source.overlay_onto(self)
+    }
+    /// Put the non-blank contents of `source` in a region at a region of this `Window`.
+    ///
+    /// The two regions are not required to be the same size; overlapping
+    /// portions are copied.
+    ///
+    /// This corresponds to `copywin` but *with the arguments flipped* and a
+    /// final argument of `true`.
+    pub fn put_window_text_region<P1: Into<Point>, P2: Into<Point>, P3: Into<Point>>(
+        &mut self,
+        destination_start: P1,
+        destination_end: P2,
+        source: &Window,
+        source_start: P3,
+    ) -> Result<(), ()> {
+        source.overlay_region_onto(source_start, self, destination_start, destination_end)
+    }
+
+    /// Put the contents of this `Window` onto `destination` where they overlap.
+    ///
+    /// This corresponds to `overwrite`.
+    pub fn overwrite_onto(&self, destination: &mut Self) -> Result<(), ()> {
+        check(self.w.overwrite(&destination.w))
+    }
+    /// Put the non-blank contents of this `Window` onto `destination` where they overlap.
+    ///
+    /// This corresponds to `overlay`.
+    pub fn overlay_onto(&self, destination: &mut Self) -> Result<(), ()> {
+        check(self.w.overlay(&destination.w))
+    }
+
+    /// Overwrite this `Window` on top of the `destination`.
+    ///
+    /// For more information on how this works, see [`put_window`].
+    ///
+    /// This corresponds to `copywin` with a final argument of `true`.
+    ///
+    /// [`put_window`]: struct.Window.html#method.put_window
+    pub fn overwrite_region_onto<P1: Into<Point>, P2: Into<Point>, P3: Into<Point>>(
+        &self,
+        source_start: P1,
+        destination: &mut Window,
+        destination_start: P2,
+        destination_end: P3,
+    ) -> Result<(), ()> {
+        let source_start = source_start.into();
+        let destination_start = destination_start.into();
+        let destination_end = destination_end.into();
+        check(self.w.copywin(
+            &destination.w,
+            source_start.y,
+            source_start.x,
+            destination_start.y,
+            destination_start.x,
+            destination_end.y,
+            destination_end.x,
+            true,
+        ))
+    }
+    /// Overlay this `Window`'s text on top of the `destination`.
+    ///
+    /// For more information on how this works, see [`put_window_text`].
+    ///
+    /// This corresponds to `copywin` with a final argument of `true`.
+    ///
+    /// [`put_window_text`]: struct.Window.html#method.put_window_text
+    pub fn overlay_region_onto<P1: Into<Point>, P2: Into<Point>, P3: Into<Point>>(
+        &self,
+        source_start: P1,
+        destination: &mut Window,
+        destination_start: P2,
+        destination_end: P3,
+    ) -> Result<(), ()> {
+        let source_start = source_start.into();
+        let destination_start = destination_start.into();
+        let destination_end = destination_end.into();
+        check(self.w.copywin(
+            &destination.w,
+            source_start.y,
+            source_start.x,
+            destination_start.y,
+            destination_start.x,
+            destination_end.y,
+            destination_end.x,
+            true,
+        ))
     }
 
     /// Get the attributes of the character at the point.
@@ -179,63 +281,6 @@ impl Window {
     /// This corresponds to `color_set`.
     pub fn set_color(&mut self, color_pair: i16) -> Result<(), ()> {
         check(self.w.color_set(color_pair))
-    }
-
-    /// Copy this `Window` on top of the `destination` non-destructively.
-    ///
-    /// For more information on how this works, see [`overlay`].
-    ///
-    /// This corresponds to `copywin` with a final argument of `true`.
-    ///
-    /// [`overlay`]: struct.Window.html#method.overlay
-    pub fn copy_overlay<P1: Into<Point>, P2: Into<Point>, P3: Into<Point>>(
-        &self,
-        destination: &mut Window,
-        source_start: P1,
-        destination_start: P2,
-        destination_end: P3,
-    ) -> Result<(), ()> {
-        let source_start = source_start.into();
-        let destination_start = destination_start.into();
-        let destination_end = destination_end.into();
-        check(self.w.copywin(
-            &destination.w,
-            source_start.y,
-            source_start.x,
-            destination_start.y,
-            destination_start.x,
-            destination_end.y,
-            destination_end.x,
-            true,
-        ))
-    }
-    /// Copy this `Window` on top of the `destination` destructively.
-    ///
-    /// For more information on how this works, see [`overwrite`].
-    ///
-    /// This corresponds to `copywin` with a final argument of `true`.
-    ///
-    /// [`overwrite`]: struct.Window.html#method.overwrite
-    pub fn copy_overwrite<P1: Into<Point>, P2: Into<Point>, P3: Into<Point>>(
-        &self,
-        destination: &mut Window,
-        source_start: P1,
-        destination_start: P2,
-        destination_end: P3,
-    ) -> Result<(), ()> {
-        let source_start = source_start.into();
-        let destination_start = destination_start.into();
-        let destination_end = destination_end.into();
-        check(self.w.copywin(
-            &destination.w,
-            source_start.y,
-            source_start.x,
-            destination_start.y,
-            destination_start.x,
-            destination_end.y,
-            destination_end.x,
-            true,
-        ))
     }
 
     /// Delete the character at the point.
