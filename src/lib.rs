@@ -20,6 +20,7 @@ extern crate pancurses;
 extern crate lazy_static;
 
 mod general;
+pub use general::*;
 mod initialize;
 pub use initialize::*;
 mod point;
